@@ -14,9 +14,3 @@ models — слой для хранения моделей ("Book" и "Seller").
 routers — слой для настроек урлов для различных эндпоинтов (post, get, put, delete).
 
 schemas — слой содержащий схемы pydantic, отвечает за сериализацию и валидацию.
-
-# Тест для эндпоинта create_seller
-<img width="960" alt="image_2025-03-05_16-47-22" src="https://github.com/user-attachments/assets/b3995d37-d291-426f-af3c-96c6eb6ec678" />
-
-# Документация проекта
-<img width="541" alt="image_2025-03-05_16-50-10" src="https://github.com/user-attachments/assets/811a8ddc-a25f-4283-8505-1990cdcf6da9" />
