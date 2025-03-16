@@ -10,6 +10,7 @@ class BaseBook(BaseModel):
     title: str
     author: str
     year: int
+    seller_id: int
 
 
 # Класс для валидации входящих данных. Не содержит id так как его присваивает БД.

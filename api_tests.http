@@ -31,7 +31,7 @@ content-type: application/json
 
 {
     "id": 0,
-    "firs_name": "Nikita",
+    "first_name": "Nikita",
     "last_name": "Kuzin",
     "e_mail": "Nikita@Kuzin.com",
     "password": "Nikita123/",

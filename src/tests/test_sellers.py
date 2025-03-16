@@ -12,7 +12,7 @@ from src.routers.v1.token import create_access_token
 @pytest.mark.asyncio
 async def test_create_seller(async_client):
     data = {
-        "firs_name": "Ivan",
+        "first_name": "Ivan",
         "last_name": "Ivanov",
         "e_mail": "Ivan@Ivanov.com",
         "password": "Ivan123/",
@@ -22,6 +22,7 @@ async def test_create_seller(async_client):
     assert response.status_code == status.HTTP_201_CREATED
 
     result_data = response.json()
+    assert result_data["id"] == "id"
     assert result_data["first_name"] == "Ivan"
     assert result_data["last_name"] == "Ivanov"
     assert result_data["e_mail"] == "Ivan@Ivanov.com"
@@ -31,12 +32,12 @@ async def test_create_seller(async_client):
 @pytest.mark.asyncio
 async def test_create_seller_with_duplicate_email(async_client):
     data = {
-        "firs_name": "Nikita",
+        "first_name": "Nikita",
         "last_name": "Kuzin",
         "e_mail": "Ivan@Ivanov.com",
         "password": "Nikita123/",
     }
-    response = await async_client.post("/api/v1/books/", json=data)
+    response = await async_client.post("/api/v1/sellers/", json=data)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -49,10 +50,10 @@ async def test_create_seller_with_duplicate_email(async_client):
 @pytest.mark.asyncio
 async def test_get_sellers(db_session, async_client):
     seller = Seller(
-        firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/"
+        first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/"
     )
     seller_2 = Seller(
-        firs_name="Nikita", last_name="Kuzin", e_mail="Nikita@Kuzin.com", hash_password="Nikita123/"
+        first_name="Nikita", last_name="Kuzin", e_mail="Nikita@Kuzin.com", hash_password="Nikita123/"
     )
     db_session.add_all([seller, seller_2])
     await db_session.flush()
@@ -82,24 +83,24 @@ async def test_get_sellers(db_session, async_client):
     }
 
 
-# Тест на ручку получения одного продавца и его книг
+# Тест на ручку получения продавца и его книг
 @pytest.mark.asyncio
 async def test_get_single_seller(db_session, async_client):
     seller = Seller(
-        firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/"
+        first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/"
     )
     seller_2 = Seller(
-        firs_name="Nikita", last_name="Kuzin", e_mail="Nikita@Kuzin.com", hash_password="Nikita123/"
+        first_name="Nikita", last_name="Kuzin", e_mail="Nikita@Kuzin.com", hash_password="Nikita123/"
     )
     db_session.add_all([seller, seller_2])
     await db_session.flush()
 
-    book = Book(author="Robert Martin", title="Clean Architecture", year=2025, pages=300)
+    book = Book(author="Robert Martin", title="Clean Architecture", year=2025, pages=300, seller_id = seller.id)
 
     db_session.add(book)
     await db_session.flush()
 
-    token = create_access_token({"sub": seller.email})
+    token = create_access_token({"sub": seller.e_mail})
     response = await async_client.get(f"/api/v1/sellers/{seller.id}", headers={"Authorization": f"Bearer {token}"})
 
     assert response.status_code == status.HTTP_200_OK
@@ -126,7 +127,7 @@ async def test_get_single_seller(db_session, async_client):
 # Тест на ручку обновления продавца
 @pytest.mark.asyncio
 async def test_update_seller(db_session, async_client):
-    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.ocm")
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.ocm", hash_password="Ivan123/")
 
     db_session.add(seller)
     await db_session.flush()
@@ -134,9 +135,11 @@ async def test_update_seller(db_session, async_client):
     response = await async_client.put(
         f"/api/v1/sellers/{seller.id}",
         json={
+            "id": seller.id,
             "first_name": "Maxim",
             "last_name": "Maximov",
-            "e_mail": "Ivan@Ivanov.com",
+            "e_mail": "Maxim@Maximov.com",
+            "password": "Maxim123/",
         },
     )
 
@@ -145,16 +148,16 @@ async def test_update_seller(db_session, async_client):
 
     # Проверяем, что обновились все поля
     res = await db_session.get(Seller, seller.id)
-    assert res.title == "Maxim"
-    assert res.author == "Maximov"
-    assert res.e_mail == "Ivan@Ivanov.com"
     assert res.id == seller.id
+    assert res.first_name == "Maxim"
+    assert res.last_name == "Maximov"
+    assert res.e_mail == "Ivan@Ivanov.com"
 
 
 # Тест на ручку удаления продавца
 @pytest.mark.asyncio
-async def test_delete_book(db_session, async_client):
-    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.ocm")
+async def test_delete_seller(db_session, async_client):
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.ocm", hash_password="Ivan123/")
 
     db_session.add(seller)
     await db_session.flush()

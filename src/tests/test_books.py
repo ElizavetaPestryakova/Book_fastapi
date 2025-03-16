@@ -12,7 +12,7 @@ from src.routers.v1.token import create_access_token
 # Тест на ручку создающую книгу
 @pytest.mark.asyncio
 async def test_create_book(db_session, async_client):
-    seller = Seller(firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", password="Ivan123/")
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/")
     
     db_session.add(seller)
     await db_session.flush()
@@ -22,6 +22,7 @@ async def test_create_book(db_session, async_client):
         "author": "Robert Martin",
         "count_pages": 300,
         "year": 2025,
+        "seller_id": seller.id
     }
 
     token = create_access_token({"sub": seller.e_mail})
@@ -46,7 +47,7 @@ async def test_create_book(db_session, async_client):
 @pytest.mark.asyncio
 async def test_create_book_with_old_year(db_session, async_client):
      
-    seller = Seller(firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", password="Ivan123/")
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/")
     
     db_session.add(seller)
     await db_session.flush()
@@ -56,8 +57,12 @@ async def test_create_book_with_old_year(db_session, async_client):
         "author": "Robert Martin",
         "count_pages": 300,
         "year": 1986,
+        "seller_id": seller.id
     }
-    response = await async_client.post("/api/v1/books/", json=book)
+
+    token = create_access_token({"sub": seller.e_mail})
+
+    response = await async_client.post("/api/v1/books/", json=book, headers={"Authorization": f"Bearer {token}"})
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -66,15 +71,15 @@ async def test_create_book_with_old_year(db_session, async_client):
 @pytest.mark.asyncio
 async def test_get_books(db_session, async_client):
     
-    seller = Seller(firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", password="Ivan123/")
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/")
     
     db_session.add(seller)
     await db_session.flush()
 
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = Book(author="Robert Martin", title="Clean Architecture", year=2025, pages=300)
-    book_2 = Book(author="Entony Show", title="Inside CPYTHON", year=2023, pages=350)
+    book = Book(author="Robert Martin", title="Clean Architecture", year=2025, pages=300, seller_id=seller.id)
+    book_2 = Book(author="Entony Show", title="Inside CPYTHON", year=2023, pages=350, seller_id=seller.id)
 
     db_session.add_all([book, book_2])
     await db_session.flush()
@@ -83,7 +88,7 @@ async def test_get_books(db_session, async_client):
 
     assert response.status_code == status.HTTP_200_OK
 
-    assert (len(response.json()["books"]) == 2)
+    assert len(response.json()["books"]) == 2
 
     # Проверяем интерфейс ответа, на который у нас есть контракт.
     assert response.json() == {
@@ -94,6 +99,7 @@ async def test_get_books(db_session, async_client):
                 "year": 2025,
                 "id": book.id,
                 "pages": 300,
+                "seller_id": seller.id,
             },
             {
                 "title": "Inside CPYTHON",
@@ -101,6 +107,7 @@ async def test_get_books(db_session, async_client):
                 "year": 2023,
                 "id": book_2.id,
                 "pages": 350,
+                "seller_id": seller.id,
             },
         ]
     }
@@ -110,15 +117,15 @@ async def test_get_books(db_session, async_client):
 @pytest.mark.asyncio
 async def test_get_single_book(db_session, async_client):
     
-    seller = Seller(firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", password="Ivan123/")
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/")
     
     db_session.add(seller)
     await db_session.flush()
     
     # Создаем книги вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = Book(author="Robert Martin", title="Clean Architecture", year=2025, pages=300)
-    book_2 = Book(author="Entony Show", title="Inside CPYTHON", year=2023, pages=350)
+    book = Book(author="Robert Martin", title="Clean Architecture", year=2025, pages=300, seller_id=seller.id)
+    book_2 = Book(author="Entony Show", title="Inside CPYTHON", year=2023, pages=350, seller_id=seller.id)
 
     db_session.add_all([book, book_2])
     await db_session.flush()
@@ -142,14 +149,14 @@ async def test_get_single_book(db_session, async_client):
 @pytest.mark.asyncio
 async def test_update_book(db_session, async_client):
     
-    seller = Seller(firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", password="Ivan123/")
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/")
     
     db_session.add(seller)
     await db_session.flush()
 
     # Создаем книгу вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = Book(author="Robert Martin", title="Clean Architecture", year=2025, pages=300)
+    book = Book(author="Robert Martin", title="Clean Architecture", year=2025, pages=300, seller_id=seller.id)
 
     db_session.add(book)
     await db_session.flush()
@@ -185,13 +192,13 @@ async def test_update_book(db_session, async_client):
 @pytest.mark.asyncio
 async def test_delete_book(db_session, async_client):
     
-    seller = Seller(firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", password="Ivan123/")
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/")
     
     db_session.add(seller)
     await db_session.flush()
     # Создаем книгу вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = Book(author="Entony Show", title="Inside CPYTHON", year=2023, pages=350)
+    book = Book(author="Entony Show", title="Inside CPYTHON", year=2023, pages=350, seller_id=seller.id)
 
     db_session.add(book)
     await db_session.flush()
@@ -211,14 +218,14 @@ async def test_delete_book(db_session, async_client):
 @pytest.mark.asyncio
 async def test_delete_book_with_invalid_book_id(db_session, async_client):
     
-    seller = Seller(firs_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", password="Ivan123/")
+    seller = Seller(first_name="Ivan", last_name="Ivanov", e_mail="Ivan@Ivanov.com", hash_password="Ivan123/")
     
     db_session.add(seller)
     await db_session.flush()
 
     # Создаем книгу вручную, а не через ручку, чтобы нам не попасться на ошибку которая
     # может случиться в POST ручке
-    book = Book(author="Entony Show", title="Inside CPYTHON", year=2023, pages=350)
+    book = Book(author="Entony Show", title="Inside CPYTHON", year=2023, pages=350, seller_id=seller.id)
 
     db_session.add(book)
     await db_session.flush()

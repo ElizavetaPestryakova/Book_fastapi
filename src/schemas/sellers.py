@@ -61,5 +61,6 @@ class ReturnedAllSellers(BaseModel):
     sellers: list[ReturnedSeller]
     
 # Класс для возврата массива объектов "Продавец и книги"
-class ReturnedSellerAndBooks(ReturnedSeller):
+class ReturnedSellerAndBooks(BaseSeller):
+    id: int
     books: list[ReturnedBook]

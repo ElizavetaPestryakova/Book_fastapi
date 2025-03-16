@@ -22,15 +22,14 @@ DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 async def create_book(
     book: IncomingBook,
     session: DBSession,
-    token: Annotated[TokenData, Depends(valid_user_token)]
+    _: Annotated[TokenData, Depends(valid_user_token)]
 ):
     new_book = Book(
-        **{
-            "title": book.title,
-            "author": book.author,
-            "year": book.year,
-            "pages": book.pages,
-        }
+        title=book.title,
+        author=book.author,
+        year=book.year,
+        pages=book.pages,
+        seller_id=book.seller_id,
     )
 
     session.add(new_book)
@@ -71,7 +70,7 @@ async def delete_book(book_id: int, session: DBSession):
 
 # Ручка для обновления данных о книге
 @books_router.put("/{book_id}", response_model=ReturnedBook)
-async def update_book(book_id: int, new_book_data: ReturnedBook, session: DBSession, token: Annotated[TokenData, Depends(valid_user_token)]):
+async def update_book(book_id: int, new_book_data: ReturnedBook, session: DBSession, _: Annotated[TokenData, Depends(valid_user_token)]):
     # Оператор "морж", позволяющий одновременно и присвоить значение и проверить его. Заменяет то, что закомментировано выше.
     if updated_book := await session.get(Book, book_id):
         updated_book.author = new_book_data.author
