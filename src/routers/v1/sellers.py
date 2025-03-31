@@ -50,7 +50,11 @@ async def get_all_sellers(session: DBSession):
 
 # Ручка для получения продавца по его ИД
 @sellers_router.get("/{seller_id}", response_model=ReturnedSellerAndBooks)
-async def get_seller(seller_id: int, session: DBSession, _: Annotated[TokenData, Depends(valid_user_token)]):
+async def get_seller(
+    seller_id: int,
+    session: DBSession,
+    # _: Annotated[TokenData, Depends(valid_user_token)]
+):
     query = select(Seller).options(selectinload(Seller.books)).where(Seller.id == seller_id)
     result = await session.execute(query)
 

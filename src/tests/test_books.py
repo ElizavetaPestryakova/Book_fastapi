@@ -5,8 +5,7 @@ from sqlalchemy import select
 
 from src.models.books import Book
 from src.models.sellers import Seller
-from src.routers.v1.token import create_access_token
-
+# from src.routers.v1.token import create_access_token
 
 
 # Тест на ручку создающую книгу
@@ -25,9 +24,12 @@ async def test_create_book(db_session, async_client):
         "seller_id": seller.id
     }
 
-    token = create_access_token({"sub": seller.e_mail})
-
-    response = await async_client.post("/api/v1/books/", json=book, headers={"Authorization": f"Bearer {token}"})
+    # token = create_access_token({"sub": seller.e_mail})
+    response = await async_client.post(
+        "/api/v1/books/",
+        json=book
+        # headers={"Authorization": f"Bearer {token}"}
+    )
 
     assert response.status_code == status.HTTP_201_CREATED
 
@@ -60,9 +62,12 @@ async def test_create_book_with_old_year(db_session, async_client):
         "seller_id": seller.id
     }
 
-    token = create_access_token({"sub": seller.e_mail})
-
-    response = await async_client.post("/api/v1/books/", json=book, headers={"Authorization": f"Bearer {token}"})
+    # token = create_access_token({"sub": seller.e_mail})
+    response = await async_client.post(
+        "/api/v1/books/",
+        json=book
+        # headers={"Authorization": f"Bearer {token}"}
+    )
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -169,10 +174,12 @@ async def test_update_book(db_session, async_client):
             "pages": 350,
             "seller_id": seller.id,
     }
-    token = create_access_token({"sub": seller.e_mail})
 
+    # token = create_access_token({"sub": seller.e_mail})
     response = await async_client.put(
-        f"/api/v1/books/{book.id}", json=update_book, headers={"Authorization": f"Bearer {token}"}
+        f"/api/v1/books/{book.id}",
+        json=update_book
+        # headers={"Authorization": f"Bearer {token}"}
     )
 
     assert response.status_code == status.HTTP_200_OK

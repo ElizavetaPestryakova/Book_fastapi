@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from src.models.books import Book
 from src.models.sellers import Seller
-from src.routers.v1.token import create_access_token
+# from src.routers.v1.token import create_access_token
 
 
 # Тест на ручку создающую продавца
@@ -100,8 +100,11 @@ async def test_get_single_seller(db_session, async_client):
     db_session.add(book)
     await db_session.flush()
 
-    token = create_access_token({"sub": seller.e_mail})
-    response = await async_client.get(f"/api/v1/sellers/{seller.id}", headers={"Authorization": f"Bearer {token}"})
+    # token = create_access_token({"sub": seller.e_mail})
+    response = await async_client.get(
+        f"/api/v1/sellers/{seller.id}"
+        # headers={"Authorization": f"Bearer {token}"}
+    )
 
     assert response.status_code == status.HTTP_200_OK
 

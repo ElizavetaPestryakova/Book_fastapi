@@ -22,7 +22,7 @@ DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 async def create_book(
     book: IncomingBook,
     session: DBSession,
-    _: Annotated[TokenData, Depends(valid_user_token)]
+    # _: Annotated[TokenData, Depends(valid_user_token)]
 ):
     new_book = Book(
         title=book.title,
@@ -41,8 +41,6 @@ async def create_book(
 # Ручка, возвращающая все книги
 @books_router.get("/", response_model=ReturnedAllBooks)
 async def get_all_books(session: DBSession):
-    # Хотим видеть формат
-    # books: [{"id": 1, "title": "blabla", ...., "year": 2023},{...}]
     query = select(Book)  # SELECT * FROM book
     result = await session.execute(query)
     books = result.scalars().all()
@@ -70,8 +68,13 @@ async def delete_book(book_id: int, session: DBSession):
 
 # Ручка для обновления данных о книге
 @books_router.put("/{book_id}", response_model=ReturnedBook)
-async def update_book(book_id: int, new_book_data: ReturnedBook, session: DBSession, _: Annotated[TokenData, Depends(valid_user_token)]):
-    # Оператор "морж", позволяющий одновременно и присвоить значение и проверить его. Заменяет то, что закомментировано выше.
+async def update_book(
+    book_id: int,
+    new_book_data: ReturnedBook,
+    session: DBSession,
+    # _: Annotated[TokenData, Depends(valid_user_token)]
+):
+    # Оператор "морж", позволяющий одновременно и присвоить значение и проверить его
     if updated_book := await session.get(Book, book_id):
         updated_book.author = new_book_data.author
         updated_book.title = new_book_data.title
