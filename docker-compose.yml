@@ -1,0 +1,21 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+    restart: always
+    ports:
+      - '5445:5432'
+    environment:
+      - POSTGRES_USER=postgres_user
+      - POSTGRES_PASSWORD=postgres_pass
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks: [book_fastapi]
+
+volumes:
+  postgres_data:
+
+networks:
+  book_fastapi:
+    name: book_fastapi
